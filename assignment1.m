@@ -22,24 +22,19 @@ freq(f<-4000) = 0;
 %4) Return signal to time domain
 inverse=ifft(ifftshift(freq));
 ft = real(inverse);
-figure(5);
+figure(2);
 plot(t,ft);
 
-%******************************************************
+%5) Calculate average error
+error = mean((x - ft).^2);
+fprintf('avg error: %f\n',error);
 
-%error
-error=mean(( x- ft).^2);
-fprintf('error1: %f\n',error);
-
-%***************************************************
-
-% modulation, use a 1Mhz carrier.
+%6) AM Modulation
 fc=1000000;
-%assume M=0.5<1
-nf=1+0.5*ft; 
+nf=1+0.5*ft; %assume M=0.5<1 
 cosine=permute(cos(2*pi*fc*t), [2,1]); 
 z=nf.*cosine; 
-figure(6)
+figure(3)
 plot(t,z); 
 
 %**************************************
