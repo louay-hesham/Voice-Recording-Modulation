@@ -16,14 +16,15 @@ title('Original signal');
 %3) Delete spectrum > 4K
 freq=fft(x); 
 freq=fftshift(freq);
-freq(f>4000) = 0;
-freq(f<-4000) = 0;
+freq(freq>4000) = 0;
+freq(freq<-4000) = 0;
 
 %4) Return signal to time domain
 inverse=ifft(ifftshift(freq));
 ft = real(inverse);
 figure(2);
 plot(t,ft);
+title('Signal after removing > 4K frequencies');
 
 %5) Calculate average error
 error = mean((x - ft).^2);
@@ -36,56 +37,61 @@ cosine=permute(cos(2*pi*fc*t), [2,1]);
 z=nf.*cosine; 
 figure(3)
 plot(t,z); 
+title('AM modulation spectrum (no noise)');
 
-%**************************************
-
-%demodulation with envelope
+% 7) Envolope detector
 [up,lo] = envelope(z); 
 d=up;
-figure(7)
+figure(4)
 plot(t,d)
+title('Envelope detector (no noise)');
 
-%*************************************
-
+% 8) Find error between received and transmitted signals
 error=mean(( d-ft).^2); 
 fprintf('error after envelope: %f\n',error);
 sound(d,Fs);
 
-%************************************
-
-%add noise then do modulation again
+% 9) Repeat with SNR = 10 dB
 repeat6 = awgn(ft,10); %add noise with 10 db 
-figure(8)
-plot(t,repeat6);
 nf6=1+0.5*repeat6;
 %modulation with noise
 z6=nf6.*cosine;
-figure(9)
+figure(5)
 plot(t,z6);
-
-%*******************************************
+title('AM modulation spectrum (SNR = 10 dB)');
 [up,lo] = envelope(z6);
 d6=up;
-figure(10)
+figure(6)
 plot(t,d6)
+title('Envelope detector (SNR = 10 dB)');
 error=mean(( d6- repeat6).^2);
 fprintf('error after envelope with noise: %f\n',error);
 sound(d6,Fs);
-%****************************************
+
+% 10) Using coherent detection
 coherent = z6.*cosine;
-figure(11)
+figure(7)
 plot(t,coherent)
+title('Using coherent detection')
 error=mean(( coherent- repeat6).^2);
 fprintf('error after coherent detection with noise: %f\n',error);
-%********************************************
+
+% 11) Carrier frequency = 1.001 MHz
 fc2=1001000;
 cosine2=permute(cos(2*pi*fc2*t), [2,1]);
 coherent = z6.*cosine2;
-figure(12)
+figure(7)
 plot(t,coherent)
-%*******************************************
+title('Using coherent detection with fc = 1.001 MHz')
+error=mean(( coherent - repeat6).^2);
+fprintf('error after coherent detection with noise and fc = 1.001 MHz: %f\n',error);
+
+% 12)  With phase error
 phase=10*pi/180;
 cosine3=permute(cos(2*pi*fc*t+ phase), [2,1]);
 coherent = z6.*cosine3;
-figure(13)
+figure(8)
 plot(t,coherent)
+title('Using coherent detection with phase error')
+error=mean(( coherent- repeat6).^2);
+fprintf('error after coherent detection with noise and phase error: %f\n',error);
