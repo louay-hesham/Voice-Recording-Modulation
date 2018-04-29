@@ -1,124 +1,95 @@
+% 1) Record
 Fs=48000;
-%record
-recObj = audiorecorder
+recObj = audiorecorder;
 disp('Start speaking.')
 recordblocking(recObj,5);
 disp('End of Recording.');
-%playback
-play(recObj);
+play(recObj); %Playback
 x = getaudiodata(recObj);
-%plot
+
+% 2) Plot original signal
 t=linspace(0,10,length(x));
 figure(1);
 plot(t,x)
+title('Original Signal');
 
-%**************************************************************
-
-%fourier
+% 3) Delete frequencies > 4KHz
 freq=fft(x);
-%plot
 f=linspace(-24000,24000,length(freq));
-figure(2);
-plot(f,real(freq))
-%shift
 freq=fftshift(freq);
-%plot
-figure(3);
-plot(f,real(freq))
-
-%**************************************************************
-
-%delete>4k
 freq(f>4000) = 0;
 freq(f<-4000) = 0;
-%plot
-figure(4);
-plot(f,real(freq))
 
-%*******************************************************
-
-%inverse
+% 4) Convert back to time domain
 inverse=ifft(ifftshift(freq));
 ft = real(inverse);
-%plot
-figure(5);
+figure(2);
 plot(t,ft);
-% sound(ft,Fs);
+title('Signal after removing > 4K frequencies');
 
-%*************************************************************
-
-%error
+% 5) Calculate the error
 error=mean(( x- ft).^2);
-fprintf("error after cutting: %f\n",error);
+fprintf('error after cutting: %f\n',error);
 
-%************************************************************
-
-%modulation"carrier"
+% 6) DSB Modulation
 fc=1000000; 
 carrier = cos(2*pi*fc*t);
 carrier=permute(carrier,[2,1]);
 modulateDSB=ft.*carrier; 
-figure(6)
+figure(3)
 plot(t,modulateDSB); 
+title('DSB modulated signal');
 
-%*************************************************************
-
-%ssb
+% 7) SSB Modulation
 d=hilbert(modulateDSB); 
 d=real(d);
 freq6=fft(d);
-figure(7)
+figure(4)
 plot(f,real(freq6));
+title('SSB spectrum before shift');
 freq7=fftshift(freq6);
-figure(8);
+figure(5);
 plot(f,real(freq7))
+title('SSB spectrum after shift');
 
-%****************************************************************
+% 8) Find error between received and coherent signals
 decoherent = modulateDSB.*carrier;
-figure(9)
-plot(t,decoherent)
 error=mean(( ft- decoherent).^2);
-fprintf("error after coherent: %f\n",error);
+fprintf('error after coherent: %f\n',error);
 sound(decoherent);
 
-%*********************************************************************
+% 9) Repeat with real band pass filter
  Wn=[3000 6000]/(Fs/2);
 [b,a]=butter(3,Wn);
 afterfilter=filter(b,a,modulateDSB);
-figure(10);
+figure(6);
 plot(t,afterfilter);
+title('Using band pass filter');
 
-%***********************************************
-
-%add noise 
+% 10) Repeat with coherent and real filter with SNR = 10 dB
 repeat6 = awgn(ft,10); 
-figure(11)
+figure(7)
 plot(t,repeat6);
-%modulation with noise
+title('Signal with noise');
+% Modulation with noise
 z6=repeat6.*carrier;
-figure(12)
+figure(8)
 plot(t,z6);
-
+title('Modulated signal with noise');
 coherent = z6.*carrier;
-figure(13)
+figure(9)
 plot(t,coherent)
+title('Coherent signal with noise');
 error=mean(( coherent- repeat6).^2);
-fprintf("error after coherent with noise %f\n",error);
+fprintf('error after coherent with noise %f\n',error);
 
-%**************************************************************
-
+% 11) Repeat step 10 with fc = 1.001 MHz
 noisefilter=filter(b,a,z6);
-figure(14);
-plot(t,noisefilter);
-
-%******************************************************
 fcnew=100100;
 newcarrier=permute(cos(2*pi*fcnew*t),[2,1]);
 cohfreq=repeat6.*newcarrier;
 figure(15)
 plot(t,cohfreq)
+title('Signal with noise and fc=1.001 MHz');
 error=mean(( cohfreq- repeat6).^2);
-fprintf("error new freq %f\n",error);
-
-%***************************************************
-
+fprintf('error new freq %f\n',error);
