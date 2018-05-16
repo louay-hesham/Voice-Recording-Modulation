@@ -9,7 +9,8 @@ x = getaudiodata(recObj);
 
 %2) Plotting Original Signal
 t=linspace(0,10,length(x));
-figure(1);
+% figure(1);
+subplot(3,3,1)
 plot(t,x) 
 title('Original signal');
 
@@ -22,7 +23,8 @@ freq(freq<-4000) = 0;
 %4) Return signal to time domain
 inverse=ifft(ifftshift(freq));
 ft = real(inverse);
-figure(2);
+% figure(2);
+subplot(3,3,2)
 plot(t,ft);
 title('Signal after removing > 4K frequencies');
 
@@ -35,14 +37,16 @@ fc=1000000;
 nf=1+0.5*ft; %assume M=0.5<1 
 cosine=permute(cos(2*pi*fc*t), [2,1]); 
 z=nf.*cosine; 
-figure(3)
+% figure(3)
+subplot(3,3,3)
 plot(t,z); 
 title('AM modulation spectrum (no noise)');
 
 % 7) Envolope detector
 [up,lo] = envelope(z); 
 d=up;
-figure(4)
+% figure(4)
+subplot(3,3,4)
 plot(t,d)
 title('Envelope detector (no noise)');
 
@@ -56,12 +60,14 @@ repeat6 = awgn(ft,10); %add noise with 10 db
 nf6=1+0.5*repeat6;
 %modulation with noise
 z6=nf6.*cosine;
-figure(5)
+% figure(5)
+subplot(3,3,5)
 plot(t,z6);
 title('AM modulation spectrum (SNR = 10 dB)');
 [up,lo] = envelope(z6);
 d6=up;
-figure(6)
+% figure(6)
+subplot(3,3,6)
 plot(t,d6)
 title('Envelope detector (SNR = 10 dB)');
 error=mean(( d6- repeat6).^2);
@@ -70,7 +76,8 @@ sound(d6,Fs);
 
 % 10) Using coherent detection
 coherent = z6.*cosine;
-figure(7)
+% figure(7)
+subplot(3,3,7)
 plot(t,coherent)
 title('Using coherent detection')
 error=mean(( coherent- repeat6).^2);
@@ -80,7 +87,8 @@ fprintf('error after coherent detection with noise: %f\n',error);
 fc2=1001000;
 cosine2=permute(cos(2*pi*fc2*t), [2,1]);
 coherent = z6.*cosine2;
-figure(7)
+% figure(7)
+subplot(3,3,8)
 plot(t,coherent)
 title('Using coherent detection with fc = 1.001 MHz')
 error=mean(( coherent - repeat6).^2);
@@ -90,7 +98,8 @@ fprintf('error after coherent detection with noise and fc = 1.001 MHz: %f\n',err
 phase=10*pi/180;
 cosine3=permute(cos(2*pi*fc*t+ phase), [2,1]);
 coherent = z6.*cosine3;
-figure(8)
+% figure(8)
+subplot(3,3,9)
 plot(t,coherent)
 title('Using coherent detection with phase error')
 error=mean(( coherent- repeat6).^2);

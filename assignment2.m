@@ -9,7 +9,8 @@ x = getaudiodata(recObj);
 
 % 2) Plot original signal
 t=linspace(0,10,length(x));
-figure(1);
+% figure(1);
+subplot(5,2,1)
 plot(t,x)
 title('Original Signal');
 
@@ -23,7 +24,8 @@ freq(f<-4000) = 0;
 % 4) Convert back to time domain
 inverse=ifft(ifftshift(freq));
 ft = real(inverse);
-figure(2);
+% figure(2);
+subplot(5,2,2)
 plot(t,ft);
 title('Signal after removing > 4K frequencies');
 
@@ -36,7 +38,8 @@ fc=1000000;
 carrier = cos(2*pi*fc*t);
 carrier=permute(carrier,[2,1]);
 modulateDSB=ft.*carrier; 
-figure(3)
+% figure(3)
+subplot(5,2,3)
 plot(t,modulateDSB); 
 title('DSB modulated signal');
 
@@ -44,11 +47,13 @@ title('DSB modulated signal');
 d=hilbert(modulateDSB); 
 d=real(d);
 freq6=fft(d);
-figure(4)
+% figure(4)
+subplot(5,2,4)
 plot(f,real(freq6));
 title('SSB spectrum before shift');
 freq7=fftshift(freq6);
-figure(5);
+% figure(5);
+subplot(5,2,5)
 plot(f,real(freq7))
 title('SSB spectrum after shift');
 
@@ -62,22 +67,26 @@ sound(decoherent);
  Wn=[3000 6000]/(Fs/2);
 [b,a]=butter(3,Wn);
 afterfilter=filter(b,a,modulateDSB);
-figure(6);
+% figure(6);
+subplot(5,2,6)
 plot(t,afterfilter);
 title('Using band pass filter');
 
 % 10) Repeat with coherent and real filter with SNR = 10 dB
 repeat6 = awgn(ft,10); 
-figure(7)
+% figure(7)
+subplot(5,2,7)
 plot(t,repeat6);
 title('Signal with noise');
 % Modulation with noise
 z6=repeat6.*carrier;
-figure(8)
+% figure(8)
+subplot(5,2,8)
 plot(t,z6);
 title('Modulated signal with noise');
 coherent = z6.*carrier;
-figure(9)
+% figure(9)
+subplot(5,2,9)
 plot(t,coherent)
 title('Coherent signal with noise');
 error=mean(( coherent- repeat6).^2);
@@ -88,7 +97,8 @@ noisefilter=filter(b,a,z6);
 fcnew=100100;
 newcarrier=permute(cos(2*pi*fcnew*t),[2,1]);
 cohfreq=repeat6.*newcarrier;
-figure(15)
+% figure(15)
+subplot(5,2,10)
 plot(t,cohfreq)
 title('Signal with noise and fc=1.001 MHz');
 error=mean(( cohfreq- repeat6).^2);
